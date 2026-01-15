@@ -338,8 +338,13 @@ export default App;
 ---------------------------------------------------------------------------------------
 
 ------------------------ASSIGNMENT 3---------------------------------------------------
+1. Write a Program to create a responsive grid layout using Material UI's Grid
+component.
+Use the Grid component with container and item roles.
 
 ## **1. Responsive Grid Layout using Material UI Grid**
+npm install @mui/material @emotion/react @emotion/styled
+
 
 import { Grid, Paper, Typography } from "@mui/material";
 
@@ -369,29 +374,69 @@ export default ResponsiveGrid;
 
 
 ------------------------------------------------------------------------------------------
-
+2. Write code to implement tabs for navigation in Material UI with React Router
 ## **2. Tabs Navigation using Material UI with React Router**
+npm install react-router-dom
+npm install @mui/material @emotion/react @emotion/styled
 
-import { Tabs, Tab } from "@mui/material";
-import { Link, useLocation } from "react-router-dom";
 
+import React from "react";
+import { BrowserRouter, Routes, Route, Link, useLocation } from "react-router-dom";
+import { Tabs, Tab, Box, Container } from "@mui/material";
 function NavigationTabs() {
   const location = useLocation();
-
+  const cur = location.pathname;
   return (
-    <Tabs value={location.pathname}>
-      <Tab label="Page 1" value="/page1" component={Link} to="/page1" />
-      <Tab label="Page 2" value="/page2" component={Link} to="/page2" />
-    </Tabs>
+    <Box sx={{ borderBottom: 1, borderColor: "divider" }}>
+      <Tabs value={cur} aria-label="navigation tabs">
+        <Tab label="Home" value="/" component={Link} to="/" />
+        <Tab label="Page1" value="/page1" component={Link} to="/page1" />
+        <Tab label="Page2" value="/page2" component={Link} to="/page2" />
+      </Tabs>
+    </Box>
   );
 }
 
-export default NavigationTabs;
+function Home() {
+  return <h2>Home Page</h2>;
+}
+
+function Page1() {
+  return <h2>Page 1</h2>;
+}
+
+function Page2() {
+  return <h2>Page 2</h2>;
+}
+
+function App() {
+  return (
+    <BrowserRouter>
+      <Container>
+        <NavigationTabs />
+        <Routes>
+          <Route path="/" element={<Home />} />
+          <Route path="/page1" element={<Page1 />} />
+          <Route path="/page2" element={<Page2 />} />
+        </Routes>
+      </Container>
+    </BrowserRouter>
+  );
+}
+
+export default App;
+
 
 
 ------------------------------------------------------------------------------------------
 
-## **3(a). Batch Asynchronous State Updates (React 18)**
+**3(a). Batch Asynchronous State Updates (React 18)**
+
+3. (a) Write a Program to batch asynchronous state updates in React 18.
+(b) Implement a filter input with prioritized updates for a large list.
+(c) Write a program to fetch GitHub user data using the Fetch API in a React
+component.
+
 
 import React, { useState, startTransition } from "react";
 
@@ -424,27 +469,41 @@ export default App;
 
 import { useState, startTransition } from "react";
 
-const ITEMS = ["Apple", "Banana", "Cherry", "Date", "Elderberry"];
+const Items = [
+  { id: 1, name: "Item 1" },
+  { id: 2, name: "Item 2" },
+  { id: 3, name: "Item 3" },
+  { id: 4, name: "Item 4" },
+  { id: 5, name: "Item 5" },
+];
+
+function filterList(inputValue) {
+  return Items.filter(item =>
+    item.name.toLowerCase().includes(inputValue.toLowerCase())
+  );
+}
 
 function FilterList() {
-  const [input, setInput] = useState("");
-  const [list, setList] = useState(ITEMS);
+  const [filter, setFilter] = useState("");
+  const [items, setItems] = useState(Items);
 
-  const handleChange = (e) => {
+  const onChange = (e) => {
     const value = e.target.value;
-    setInput(value);
+    setFilter(value);
 
     startTransition(() => {
-      setList(ITEMS.filter(i =>
-        i.toLowerCase().includes(value.toLowerCase())
-      ));
+      setItems(filterList(value));
     });
   };
 
   return (
     <div>
-      <input value={input} onChange={handleChange} />
-      <ul>{list.map(i => <li key={i}>{i}</li>)}</ul>
+      <input value={filter} onChange={onChange} />
+      <ul>
+        {items.map(item => (
+          <li key={item.id}>{item.name}</li>
+        ))}
+      </ul>
     </div>
   );
 }
@@ -452,73 +511,107 @@ function FilterList() {
 export default FilterList;
 
 
+
 ------------------------------------------------------------------------------------------
 
 ## **3(c). Fetch GitHub User using Fetch API**
 
-import { useEffect, useState } from "react";
-
-function GitHubUser() {
-  const [user, setUser] = useState(null);
-
-  useEffect(() => {
-    fetch("https://api.github.com/users/octocat")
-      .then(res => res.json())
-      .then(data => setUser(data));
-  }, []);
-
-  return user ? <p>{user.name}</p> : <p>Loading...</p>;
+import React,{useState,useEffect, use} from 'react';
+function GitHubUser(){
+    const[user,setUser]=useState(null);
+    const[loading,setLoading]=useState(true);
+    useEffect(()=>{
+        fetch('https://api.github.com/users/octocat')
+        .then(res=>res.json())
+        .then(data=>setUser(data))
+        .finally(()=>setLoading(false));
+    },[]);
+    return(loading ? <p>Loading...</p> :<p>{user.name}</p>);
 }
-
-export default GitHubUser;
+function App(){
+    return(
+        <div>
+            <h1>Github user info</h1>
+            <GitHubUser/>
+        </div>
+    )
+}
+export default App;
 
 
 ------------------------------------------------------------------------------------------
+4.(a) Write a program to Implement data fetching with TanStack Query for a GitHub user.
+(b) Write a program to create a global theme using React Context API?**
 
-## **4(a). Data Fetching with TanStack Query**
+**4(a). Data Fetching with TanStack Query**
+npm install @tanstack/react-query
 
-import { QueryClient, QueryClientProvider, useQuery } from "@tanstack/react-query";
+import React from "react";
+import { useQuery, QueryClient, QueryClientProvider } from "@tanstack/react-query";
 
 const queryClient = new QueryClient();
 
-function GitHubUser() {
-  const { data, isLoading } = useQuery({
-    queryKey: ["githubUser"],
+function GithubUser() {
+  const { data, isLoading, isError } = useQuery({
+    queryKey: ["user"],
     queryFn: () =>
-      fetch("https://api.github.com/users/octocat").then(res => res.json())
+      fetch("https://api.github.com/users/octocat").then((res) => res.json()),
   });
 
   if (isLoading) return <p>Loading...</p>;
+  if (isError) return <p>Error fetching</p>;
+
   return <p>{data.name}</p>;
 }
 
-export default function App() {
+function App() {
   return (
     <QueryClientProvider client={queryClient}>
-      <GitHubUser />
+      <div>
+        <h1>Github User Info</h1>
+        <GithubUser />
+      </div>
     </QueryClientProvider>
   );
 }
+
+export default App;
+
 
 
 ------------------------------------------------------------------------------------------
 
 ## **4(b). Global Theme using Context API**
 
-import { createContext, useContext } from "react";
+import React, { createContext, useContext } from "react";
 
 const ThemeContext = createContext("light");
 
-function ThemedComponent() {
+function ThemeProvider({ children }) {
+  const themeValue = "dark";
+
+  return (
+    <ThemeContext.Provider value={themeValue}>
+      {children}
+    </ThemeContext.Provider>
+  );
+}
+
+function Component() {
   const theme = useContext(ThemeContext);
-  return <div>Theme: {theme}</div>;
+
+  return (
+    <div style={{ background: theme === "dark" ? "#333" : "#fff", padding: "10px", color: "#fff" }}>
+      Theme: {theme}
+    </div>
+  );
 }
 
 function App() {
   return (
-    <ThemeContext.Provider value="dark">
-      <ThemedComponent />
-    </ThemeContext.Provider>
+    <ThemeProvider>
+      <Component />
+    </ThemeProvider>
   );
 }
 
@@ -526,9 +619,16 @@ export default App;
 
 
 ------------------------------------------------------------------------------------------
+5.(a) Implement a simple counter using Redux in React.
+(b) implement SSR in Next.js using getServerSideProps?
+(c) Create a dynamic post page with SSG in Next.js.
+(d) Write a program to set up a basic unit test for a React component using Vitest.
 
-## **5(a). Simple Counter using Redux**
+5(a). Simple Counter using Redux
+npm install redux react-redux
 
+
+import React from "react";
 import { createStore } from "redux";
 import { Provider, useDispatch, useSelector } from "react-redux";
 
@@ -536,6 +636,12 @@ function reducer(state = { count: 0 }, action) {
   switch (action.type) {
     case "INCREMENT":
       return { count: state.count + 1 };
+
+    case "SET_INITIAL_COUNT": {
+      const safeCount = parseInt(action.payload, 10);
+      return { count: isNaN(safeCount) ? 0 : safeCount };
+    }
+
     default:
       return state;
   }
@@ -544,13 +650,16 @@ function reducer(state = { count: 0 }, action) {
 const store = createStore(reducer);
 
 function Counter() {
-  const count = useSelector(s => s.count);
+  const count = useSelector((state) => state.count);
   const dispatch = useDispatch();
 
   return (
-    <button onClick={() => dispatch({ type: "INCREMENT" })}>
-      Count: {count}
-    </button>
+    <div>
+      <h1>Redux Counter</h1>
+      <button onClick={() => dispatch({ type: "INCREMENT" })}>
+        {count}
+      </button>
+    </div>
   );
 }
 
@@ -563,20 +672,34 @@ export default function App() {
 }
 
 
+
 ------------------------------------------------------------------------------------------
 
 ## **5(b). SSR using getServerSideProps (Next.js)**
+npx create-next-app
 
 export async function getServerSideProps() {
-  const res = await fetch("https://jsonplaceholder.typicode.com/todos/1");
+  const res = await fetch("https://api.github.com/users/torvalds");
   const data = await res.json();
 
-  return { props: { data } };
+  return {
+    props: { data },
+  };
 }
 
-export default function Page({ data }) {
-  return <p>{data.title}</p>;
+function Page({ data }) {
+  return (
+    <div>
+      <h1>Server side rendered page</h1>
+      <p>Name: {data.name}</p>
+      <p>UserName: {data.login}</p>
+      <p>Location: {data.location}</p>
+    </div>
+  );
 }
+
+export default Page;
+
 
 ------------------------------------------------------------------------------------------
 
@@ -604,27 +727,48 @@ export default function Post({ post }) {
 ------------------------------------------------------------------------------------------
 
 ## **5(d). Unit Test using Vitest**
+npm install -D vitest @testing-library/react @testing-library/jest-dom jsdom
 
-**Component**
-
-```jsx
-export default function Component() {
-  return <p>Hello Test</p>;
-}
-```
-
-**Test File**
-
-```js
-import { render, screen } from "@testing-library/react";
-import { describe, it, expect } from "vitest";
+App.js
+import React from "react";
 import Component from "./Component";
 
-describe("Component test", () => {
-  it("renders text", () => {
-    render(<Component />);
-    expect(screen.getByText("Hello Test")).toBeInTheDocument();
-  });
+function App() {
+  return (
+    <div>
+      <h1>My react app</h1>
+      <Component />
+    </div>
+  );
+}
+
+export default App;
+
+✅  App.test.js
+import { render, screen } from "@testing-library/react";
+import App from "./App";
+
+test("renders app heading", () => {
+  render(<App />);
+  const heading = screen.getByText("My react app");
+  expect(heading).toBeInTheDocument();
+});
+
+
+✅ Component.js
+function Component() {
+  return <div>Hello</div>;
+}
+export default Component;
+
+
+✅ Component.test.js
+import { render, screen } from "@testing-library/react";
+import Component from "./Component";
+
+test("renders text", () => {
+  render(<Component />);
+  expect(screen.getByText("Hello")).toBeInTheDocument();
 });
 
 ---------------------------------------------------------------------------------------------
@@ -632,7 +776,27 @@ describe("Component test", () => {
 
 
 ASSIGNMENT2
-Q1 
+Q1
+Create a React program that lets user to input his/her name, age, city, country, course,
+college name and email id and display the entered values on the screen.
+Tips:
+(a) Use React's useState hook to manage the state for the user's name and age.
+(b) Provide an input field for the name with a default value of "Ahmed Saraf" and an
+input field for age with a default value of 25.
+Other Default Vaalues: "Delhi" for city , "India" for country, “abc123@gmail.com
+for email id, course: “B. Tech”, College name: “ABC”.
+(c) Use the onChange event to update the state when the user types in the input fields.
+(d) Below each input field, display the entered name, age, etc, dynamically as the user
+types.
+(e) The program should display the following text below the inputs:
+"My name is [entered name]"
+"My age is [entered age]"
+"My city is [entered city]"
+"My country is [entered country]"
+"My email id is [entered email id]"
+"My course is [entered B. Tech]"
+"My college name is [entered ABC]"
+
 
 import React, { useState } from "react";
 
@@ -674,7 +838,9 @@ export default UserDetails;
 
 ------------------------------------------------------------------------------------------
 
-Q2
+Q2 Create a React program that displays a list of student names and their marks using the
+map() function.
+
 function App() {
   const students = [
     { name: "arush", marks: 90 },
@@ -700,7 +866,22 @@ export default App;
 
 ------------------------------------------------------------------------------------------
 
-Q3
+Q3 Create a React program that demonstrates the use of useMemo to optimize performance
+for expensive computations as follows:
+(i) Create a functional component called Component. Add a state variable number
+with an initial value of 1. Add a state variable text with an initial value of an
+empty string "".
+(ii) Create a function computeExpensiveValue(num) that simulates a heavy
+computation (e.g., a large loop) and returns a result based on num.
+(iii) Use React.useMemo to compute the expensive value based on number. The
+computation should only rerun when number changes.
+a. Render the following in the component: display the current number, display
+the result of the expensive computation, a button to increment number by 1,
+an input field bound to text that updates as the user types, display the typed
+text below the input.
+
+
+
 import { useMemo, useState } from "react";
 
 function computeExpensiveValue(num) {
@@ -748,7 +929,10 @@ export default Component;
 
 
 ------------------------------------------------------------------------------------------
-Q4
+Q4 Create a React program that demonstrates the use of useCallback to prevent
+unnecessary re-renders of a memoized child component.
+
+
 import React, { useState, useCallback } from "react";
 
 const MyButton = React.memo(({ onClick, label }) => {
@@ -782,7 +966,16 @@ export default App;
 
 
 ------------------------------------------------------------------------------------------
-Q5
+Q5 Write a program in React to implement the concept of the useEffect hook.
+(a) Create a functional component that demonstrates the use of the useEffect hook.
+(b) The component should perform an operation such as:displaying a message in
+the console or on the screen whenever the component mounts or updates.
+Optionally, implement a cleanup function to demonstrate how useEffect handles
+unmounting.
+(c) Use appropriate state management with the useState hook to trigger rerendering and observe how useEffect behaves in response to state changes.
+(d) Include clear comments explaining the purpose of useEffect, its dependency
+array, and the flow of execution.
+
 
 import { useState, useEffect } from "react";
 
@@ -810,7 +1003,12 @@ function App() {
 
 export default App;
 ------------------------------------------------------------------------------------------
-Q6
+Q6 Create a React application that demonstrates data sharing between components using
+the Context API and the useContext hook. Define a context (e.g., UserContext) in a
+parent component and provide a value such as a user’s name, theme, or language
+preference. Consume the context value in one or more child components using the
+useContext hook, and display the data on the screen. Optionally, include a mechanism
+(such as a button) to update the context value dynamically and reflect
 
 import {useContext, useState} from "react";
 const usercontext=createContext();
@@ -839,7 +1037,16 @@ function Dashboard(){
     )
 }
 ------------------------------------------------------------------------------------------
-Q7
+Q7 Write a program in React to implement the concept of the useRef hook as follows:
+(a) Create a functional React component that demonstrates the use of the useRef hook.
+(b) Use useRef to access and manipulate a DOM element directly — for example,
+setting focus on an input field when a button is clicked.
+(c) Optionally, demonstrate how useRef can be used to store mutable values that
+persist across renders without causing re-renders.
+(d) Include appropriate comments explaining the purpose of useRef, its difference
+from useState, and its practical use cases in React applications.
+
+
 import React, { useRef, useState } from "react";
 
 function App() {
@@ -870,8 +1077,8 @@ function App() {
 }
 
 export default App;
-----------------------------------------------------------------------
-Q8
+---------------------------------------------------------------------------------
+Q8. Write a Simple program in react to implement the event handling used in react.
 import React from 'react';
 function eventHandling(){
     const handleClick = () => { alert('Button clicked!'); };
@@ -882,8 +1089,18 @@ function eventHandling(){
         </div>
     )
 }
------------------------------------------------------------------------
-Q9
+---------------------------------------------------------------------------------
+Q9.  Write a React program to demonstrate the handling of multiple events.
+• Create a functional React component that includes different user interface elements
+such as buttons, input fields, or divs.
+• Implement multiple event handlers (for example, onClick, onChange,
+onMouseOver, etc.) to respond to various user actions.
+• Display appropriate messages or perform specific actions when each event is
+triggered.
+• Include comments explaining the purpose of each event handler and how React’s
+event system (Synthetic Events) manages them.
+
+
 import React, { useState } from "react";
 
 function EventHandling() {
@@ -920,7 +1137,9 @@ function EventHandling() {
 export default EventHandling;
 
 -----------------------------------------------------------------------
-Q10
+Q10 Write a program in react to implement the concept of inline and non-inline event
+handlers.
+
 import React from "react";
 
 function EventHandler() {
@@ -943,7 +1162,10 @@ function EventHandler() {
 export default EventHandler;
 -----------------------------------------------------------------------
 
-Q11
+Q11 Write a program in react to demonstrate the concept of synthetic events and event
+pooling used in react environment.
+
+
 import React from "react";
 
 function EventHandler() {
@@ -966,7 +1188,8 @@ function EventHandler() {
 
 export default EventHandler;
 -----------------------------------------------------------------------
-Q12
+Q12 Write a React component that uses the useState hook to create a counter with
+Increment, Decrement, and Reset buttons.
 
 import React, { useState } from "react";
 
@@ -986,7 +1209,22 @@ function Counter() {
 export default Counter;
 
 -----------------------------------------------------------------------
-Q13
+Q13 Design and implement a React application utilizing the useState hook to manage and
+display a list of articles. The application should meet the following specifications:
+• The interface must contain two input fields for entering an article’s Title and
+Summary.
+• Upon clicking the “Add” button, the entered article should be appended to a
+displayed list of articles.
+• Each article entry in the list must include: the Title, displayed as a clickable link.
+Clicking this link should toggle the visibility of the corresponding Summary
+(i.e., show or hide it).
+• A Remove ( ) button that allows the user to delete the respective article from
+the list. The visibility of each article’s summary should be controlled using
+inline CSS styling (e.g., by modifying the display property between "none" and
+"block").
+
+
+
 import React, { useState } from "react";
 
 function App() {
@@ -1068,7 +1306,14 @@ export default App;
 
 ASSIGNMENT 1
 
-Q1
+Q1. Create a React component to do the following operations:
+i) A button labelled "Highlight Paragraph".
+ii) A paragraph with the text "This is some text."
+iii) When the button is clicked, the paragraph should: Have a yellow background
+color and becomes bold
+iv) Use React state (useState) and conditional CSS class to implement this
+behavior.
+
 App.js
 
 
@@ -1102,7 +1347,9 @@ App.css
 
 
 
-Q2
+Q2 Write a react program that prints the biography of a person having the following details:
+Name, age, profession type, salary, profession details, etc.
+
 App.js
 
 export default function App() {
@@ -1131,9 +1378,15 @@ export default function App() {
   );
 }
 ------------------------------------------------------------------------------------------
-
-
-Q3
+Q3 Write a React program (without using JSX) that:
+i) imports React and ReactDOM.
+ii) Creates a root container by selecting the <div id="root"></div> element in the
+HTML file.
+iii) Uses React.createElement() to render the following output inside the root
+element:
+iv) Hello, JSX
+v) The word "JSX" should appear in bold.
+vi) Do not use JSX syntax (<p>...</p>). Use only React.createElement()
 index.js
 
 import React from "react";
@@ -1146,10 +1399,26 @@ const element = React.createElement(
   React.createElement("p", null, "JSX")
 );
 root.render(element);
+
 ------------------------------------------------------------------------------------------
 
 
-Q4
+Q4 Write a React program that demonstrates the use of built-in HTML tags in React.
+Your program should:
+i) Import React and ReactDOM.
+ii) Create a root container that mounts the React app to a <div id="root"></div>
+in index.html.
+iii) Render the following HTML tags inside React:
+a. A button with the text Click Me.
+b. A code block showing console.log("Hello World");.
+c. An input field with a placeholder "Enter something".
+d. A label for the input field with text "Name:".
+e. A paragraph with any sample text.
+f. A preformatted text block.
+g. A select dropdown with two options (Option 1 and Option 2).
+h. A table with two rows (Sl No, Item → Apple, Mango).
+
+
 index.js
 import React from "react";
 import ReactDOM from "react-dom/client";
@@ -1203,6 +1472,20 @@ root.render(<App />);
 ------------------------------------------------------------------------------------------
 
 Q5
+Write a React program that demonstrates the use of semantic HTML5 tags inside
+React.
+Your program should:
+(i) Import ReactDOM and create a root container that renders into <div
+id="root"></div>.
+(ii) Render a <section> element that contains the following:
+(iii) A <header> with an <h1> heading: "A Header".
+(iv) A <nav> element with a navigation link labeled "Nav Item".
+(v) A <main> section with a paragraph containing the text: "The main content...".
+(vi) A <footer> with a <small> tag showing: © 2024.
+(Ensure that all tags are properly nested and follow React’s JSX syntax)
+
+
+
 import React from "react";
 import ReactDOM from "react-dom/client";
 
@@ -1235,6 +1518,13 @@ root.render(<App />);
 
 
 Q6
+Write a React program that defines a component called MyComponent which
+accepts title and description as props and displays them inside an <h1> and <p>
+element respectively. Then, create an App component that renders MyComponent
+with the following values:
+title = "Hello World"
+description = "This is a sample description"
+
 app.js
 
 import "./App.css";
@@ -1259,6 +1549,14 @@ export default App;
 ------------------------------------------------------------------------------------------
 
 Q7
+Write a React component named MyButton that accepts two props as follows:
+disabled – a boolean value that determines whether the button should be disabled or
+enabled.
+text – a string that represents the button’s label.
+The component should return a <button> element that displays the text prop and applies
+the disabled state based on the disabled prop. Finally, export the component as default.
+
+
 import "./App.css";
 
 function MyButton({ disabled, text }) {
@@ -1281,6 +1579,9 @@ export default App;
 ------------------------------------------------------------------------------------------
 
 Q8
+Write a complete React program with MyButton, MyList, and MyComponent, and
+then update the UI dynamically after setTimeout().
+
 import { useState, useEffect } from "react";
 
 function MyButton({ disabled, text }) {
